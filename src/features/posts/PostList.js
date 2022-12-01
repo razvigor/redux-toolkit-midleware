@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
 	fetchPosts,
@@ -8,30 +8,41 @@ import {
 } from './postsSlice';
 import { Link } from 'react-router-dom';
 import PostsExcerpt from './PostsExcerpt';
+import Pagination from '../../components/pagination/Pagination';
 
+let PageSize = 10;
 const PostList = () => {
 	const dispatch = useDispatch();
 	const status = useSelector(getPostsStatus);
 	const posts = useSelector(getAllPosts);
 	const error = useSelector(getPostsError);
+	const [currentPage, setCurrentPage] = useState(1);
+
 	useEffect(() => {
 		if (status === 'idle') {
 			dispatch(fetchPosts());
 		}
 	}, [status, dispatch]);
+	const currentPageData = useMemo(() => {
+		const firstPageIndex = (currentPage - 1) * PageSize;
+		const lastPageIndex = firstPageIndex + PageSize;
+		const orderedPosts = posts
+			.slice()
+			.sort((a, b) => b.date.localeCompare(a.date));
+		return orderedPosts.slice(firstPageIndex, lastPageIndex);
+	}, [currentPage, posts]);
 
 	let content;
 
 	if (status === 'loading') {
 		content = <p>Loading...</p>;
-	} else if (status === 'succeeded') {
-		const orderedPosts = posts
-			.slice()
-			.sort((a, b) => b.date.localeCompare(a.date));
-		content = orderedPosts.map((post) => (
+	}
+	if (status === 'succeeded') {
+		content = currentPageData.map((post) => (
 			<PostsExcerpt key={post.id} post={post} />
 		));
-	} else if (status === 'failed') {
+	}
+	if (status === 'failed') {
 		content = <p>{error}</p>;
 	}
 	return (
@@ -44,6 +55,15 @@ const PostList = () => {
 				New Post
 			</Link>
 			<div className='flex gap-4 flex-wrap'>{content}</div>
+			<div className='flex justify-center mt-16'>
+				<Pagination
+					className='pagination-bar'
+					currentPage={currentPage}
+					totalCount={posts.length}
+					pageSize={PageSize}
+					onPageChange={(page) => setCurrentPage(page)}
+				/>
+			</div>
 		</div>
 	);
 };
