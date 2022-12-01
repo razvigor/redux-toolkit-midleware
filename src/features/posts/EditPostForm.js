@@ -87,7 +87,7 @@ const EditPostForm = () => {
 	));
 
 	return (
-		<div className='mt-10 mb-16 container mx-auto flex flex-col items-center '>
+		<div className='mt-10 mb-16 container mx-auto flex flex-col items-center px-4 md:px-0'>
 			<h1 className='text-3xl mb-16'>Edit Post</h1>
 			<form
 				className='flex flex-col w-full md:w-[50%] gap-10'
